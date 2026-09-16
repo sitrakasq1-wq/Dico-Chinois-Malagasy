@@ -1,0 +1,36 @@
+name: Build APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get project
+        uses: actions/checkout@v4
+
+      - name: Extract project
+        run: |
+          unzip -o Dico_Chinois_Malagasy_APK_ready.zip -d project
+          
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Build APK
+        working-directory: project
+        run: |
+          gradle assembleDebug --no-daemon
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Dico-Chinois-Malagasy-APK
+          path: project/app/build/outputs/apk/debug/*.apk
