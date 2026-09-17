@@ -16,21 +16,32 @@ jobs:
 
       - name: Extract project
         run: |
+          rm -rf project
+          mkdir project
           unzip -o Dico_Chinois_Malagasy_APK_ready.zip -d project
-          
+
+      - name: Find Android project
+        run: |
+          PROJECT_DIR=$(find project -name settings.gradle -o -name settings.gradle.kts | head -n 1 | xargs dirname)
+          echo "PROJECT_DIR=$PROJECT_DIR" >> $GITHUB_ENV
+
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
 
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+
       - name: Build APK
-        working-directory: project
         run: |
-          gradle assembleDebug --no-daemon
+          gradle -p "$PROJECT_DIR" assembleDebug --no-daemon
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: Dico-Chinois-Malagasy-APK
-          path: project/app/build/outputs/apk/debug/*.apk
+          path: "${{ env.PROJECT_DIR }}/app/build/outputs/apk/debug/*.apk"
